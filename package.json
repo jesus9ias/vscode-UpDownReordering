@@ -12,13 +12,17 @@
     ],
     "activationEvents": [
         "onLanguage:markdown",
-        "onCommand:extension.sayHello"
+        "onCommand:extension.orderUp",
+        "onCommand:extension.orderDown"
     ],
     "main": "./out/extension",
     "contributes": {
         "commands": [{
-            "command": "extension.sayHello",
-            "title": "Hello World"
+            "command": "extension.orderUp",
+            "title": "Order Up"
+        },{
+            "command": "extension.orderDown",
+            "title": "Order Down"
         }]
     },
     "scripts": {

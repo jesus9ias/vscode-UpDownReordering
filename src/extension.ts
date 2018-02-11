@@ -5,7 +5,7 @@ import {
     ExtensionContext,
     StatusBarAlignment,
     StatusBarItem,
-    TextDocument
+    TextDocument 
 } from 'vscode';
 
 export function activate(context: ExtensionContext) {
@@ -14,7 +14,36 @@ export function activate(context: ExtensionContext) {
     let controller = new WordCounterController(wordCounter);
 
     var disposable = commands.registerCommand('extension.sayHello', () => {
-        window.showInformationMessage('Hello World!');
+        var editor = window.activeTextEditor;
+        if (!editor) {
+            return; // No open text editor
+        }
+        var selection = editor.selection;
+        var text = editor.document.getText(selection);
+
+        var parts = text.split('\n');
+        parts.map((p, i) => {
+            console.log(p, i, p.length);
+        });
+
+        for (let i = 0; i < parts.length; i++) {
+            for (let j = 0; j < parts.length; j++) {
+                let x = parts[i];
+                if (parts[i].length < parts[j].length) {
+                    parts[i] = parts[j];
+                    parts[j] = x;
+                }
+            }
+        }
+
+        const newText = parts.join('\n');
+
+        editor.edit(builder => {
+            for (const selection of editor.selections) {
+                window.showInformationMessage('Lines ordered');
+                builder.replace(selection, newText);
+            }
+        });
     });
 
     context.subscriptions.push(disposable);
