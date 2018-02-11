@@ -1,6 +1,6 @@
 {
     "name": "updownreordering",
-    "displayName": "UpDownReordering",
+    "displayName": "updownreordering",
     "description": "",
     "version": "0.0.1",
     "publisher": "jesusescamilla",
@@ -11,9 +11,10 @@
         "Other"
     ],
     "activationEvents": [
+        "onLanguage:markdown",
         "onCommand:extension.sayHello"
     ],
-    "main": "./extension",
+    "main": "./out/extension",
     "contributes": {
         "commands": [{
             "command": "extension.sayHello",
@@ -21,13 +22,15 @@
         }]
     },
     "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
         "postinstall": "node ./node_modules/vscode/bin/install",
-        "test": "node ./node_modules/vscode/bin/test"
+        "test": "npm run compile && node ./node_modules/vscode/bin/test"
     },
     "devDependencies": {
         "typescript": "^2.6.1",
         "vscode": "^1.1.6",
-        "eslint": "^4.6.1",
         "@types/node": "^7.0.43",
         "@types/mocha": "^2.2.42"
     }
