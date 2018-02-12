@@ -15,11 +15,16 @@ export function activate(context: ExtensionContext) {
     let upController = new StatusButtonController(upButton);
     let downController = new StatusButtonController(downButton);
 
-    var disposable = commands.registerCommand('extension.orderUp', () => {
+    var dispUp = commands.registerCommand('extension.orderUp', () => {
         upButton.order();
     });
 
-    context.subscriptions.push(disposable);
+    var dispDown = commands.registerCommand('extension.orderDown', () => {
+        downButton.order();
+    });
+
+    context.subscriptions.push(dispUp);
+    context.subscriptions.push(dispDown);
     context.subscriptions.push(upController);
     context.subscriptions.push(upButton);
     context.subscriptions.push(downController);
@@ -39,7 +44,7 @@ class StatusButton {
 
         if (!this._statusBarItem) {
             this._statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left);
-            this._statusBarItem.command = 'extension.orderUp';
+            this._statusBarItem.command = this.type == 'up' ? 'extension.orderUp' : 'extension.orderDown' ;
             this._statusBarItem.text = this.type == 'up' ? 'Order Up' : 'Order Down';
         }
 
@@ -47,14 +52,16 @@ class StatusButton {
             this._statusBarItem.hide();
             return;
         }
+        
+        this._statusBarItem.show();
 
-        let doc = this.editor.document;
+        //  let doc = this.editor.document;
 
-        if (doc.languageId === "markdown") {
+        /*  if (doc.languageId === "markdown") {
             this._statusBarItem.show();
         } else {
             this._statusBarItem.hide();
-        }
+        }   */
     }
 
     public order() {
@@ -62,16 +69,25 @@ class StatusButton {
         var text = this.editor.document.getText(selection);
 
         var parts = text.split('\n');
-        parts.map((p, i) => {
-            console.log(p, i, p.length);
-        });
 
-        for (let i = 0; i < parts.length; i++) {
-            for (let j = 0; j < parts.length; j++) {
-                let x = parts[i];
-                if (parts[i].length < parts[j].length) {
-                    parts[i] = parts[j];
-                    parts[j] = x;
+        if (this.type == 'up') {
+            for (let i = 0; i < parts.length; i++) {
+                for (let j = 0; j < parts.length; j++) {
+                    if (parts[i].length < parts[j].length) {
+                        let x = parts[i];
+                        parts[i] = parts[j];
+                        parts[j] = x;
+                    }
+                }
+            }
+        } else {
+            for (let i = 0; i < parts.length; i++) {
+                for (let j = 0; j < parts.length; j++) {
+                    if (parts[i].length > parts[j].length) {
+                        let x = parts[i];
+                        parts[i] = parts[j];
+                        parts[j] = x;
+                    }
                 }
             }
         }
