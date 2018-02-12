@@ -11,9 +11,7 @@
         "Other"
     ],
     "activationEvents": [
-        "onLanguage:markdown",
-        "onCommand:extension.orderUp",
-        "onCommand:extension.orderDown"
+        "*"
     ],
     "main": "./out/extension",
     "contributes": {

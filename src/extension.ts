@@ -10,90 +10,47 @@ import {
 
 export function activate(context: ExtensionContext) {
 
-    let upButton = new StatusButton('up');
-    let downButton = new StatusButton('down');
-    let upController = new StatusButtonController(upButton);
-    let downController = new StatusButtonController(downButton);
+    const OrderingButtons = new OrderingButtonController();
 
-    var dispUp = commands.registerCommand('extension.orderUp', () => {
-        upButton.order();
+    const dispUp = commands.registerCommand('extension.orderUp', () => {
+        OrderingButtons.orderUp();
     });
 
-    var dispDown = commands.registerCommand('extension.orderDown', () => {
-        downButton.order();
+    const dispDown = commands.registerCommand('extension.orderDown', () => {
+        OrderingButtons.orderDown();
     });
 
     context.subscriptions.push(dispUp);
     context.subscriptions.push(dispDown);
-    context.subscriptions.push(upController);
-    context.subscriptions.push(upButton);
-    context.subscriptions.push(downController);
-    context.subscriptions.push(downButton);
+    context.subscriptions.push(OrderingButtons);
 }
 
-class StatusButton {
-    constructor(type) {
-        this.type = type;
-    }
-
-    private type = '';
-    private editor = window.activeTextEditor;
+class OrderingButton {
+    private editor;
     private _statusBarItem: StatusBarItem;
 
-    public initialize() {
+    constructor(editor, command, text) {
 
         if (!this._statusBarItem) {
+            this.editor = editor;
             this._statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left);
-            this._statusBarItem.command = this.type == 'up' ? 'extension.orderUp' : 'extension.orderDown' ;
-            this._statusBarItem.text = this.type == 'up' ? 'Order Up' : 'Order Down';
+            this._statusBarItem.command = command;
+            this._statusBarItem.text = text;
         }
 
         if (!this.editor) {
-            this._statusBarItem.hide();
-            return;
-        }
-        
-        this._statusBarItem.show();
-
-        //  let doc = this.editor.document;
-
-        /*  if (doc.languageId === "markdown") {
             this._statusBarItem.show();
         } else {
-            this._statusBarItem.hide();
-        }   */
+            this._statusBarItem.show();
+        }
     }
 
-    public order() {
-        var selection = this.editor.selection;
-        var text = this.editor.document.getText(selection);
+    public getParts() {
+        let text = this.editor.document.getText(this.editor.selection);
+        return text.split('\n');
+    }
 
-        var parts = text.split('\n');
-
-        if (this.type == 'up') {
-            for (let i = 0; i < parts.length; i++) {
-                for (let j = 0; j < parts.length; j++) {
-                    if (parts[i].length < parts[j].length) {
-                        let x = parts[i];
-                        parts[i] = parts[j];
-                        parts[j] = x;
-                    }
-                }
-            }
-        } else {
-            for (let i = 0; i < parts.length; i++) {
-                for (let j = 0; j < parts.length; j++) {
-                    if (parts[i].length > parts[j].length) {
-                        let x = parts[i];
-                        parts[i] = parts[j];
-                        parts[j] = x;
-                    }
-                }
-            }
-        }
-
-        const newText = parts.join('\n');
-
+    public updateText(newText) {
         this.editor.edit(builder => {
             for (const selection of this.editor.selections) {
                 window.showInformationMessage('Lines ordered');
@@ -102,26 +59,82 @@ class StatusButton {
         });
     }
 
+    public order() {
+        let parts = this.getParts();        
+
+        for (let i = 0; i < parts.length; i++) {
+            for (let j = 0; j < parts.length; j++) {
+                if (parts[i].length < parts[j].length) {
+                    let x = parts[i];
+                    parts[i] = parts[j];
+                    parts[j] = x;
+                }
+            }
+        }
+
+        this.updateText(parts.join('\n'))
+    }
+
+    public checkForShowing() {
+        if (this.editor.document.getText(this.editor.selection).length > 0) {
+            this._statusBarItem.show();
+        } else {
+            this._statusBarItem.hide();
+        }
+    }
+
     dispose() {
         this._statusBarItem.dispose();
     }
 }
 
-class StatusButtonController {
+class OrderingButtonDown extends OrderingButton {
+    public order() {
+        let parts = this.getParts();        
 
-    private _statusButton: StatusButton;
+        for (let i = 0; i < parts.length; i++) {
+            for (let j = 0; j < parts.length; j++) {
+                if (parts[i].length > parts[j].length) {
+                    let x = parts[i];
+                    parts[i] = parts[j];
+                    parts[j] = x;
+                }
+            }
+        }
+
+        this.updateText(parts.join('\n'))
+    }
+}
+
+class OrderingButtonController {
+
+    private editor = window.activeTextEditor;
+    private _buttonUp: OrderingButton;
+    private _buttonDown: OrderingButton;
     private _disposable: Disposable;
 
-    constructor(StatusButton: StatusButton) {
-        this._statusButton = StatusButton;
+    constructor() {
+        this._buttonUp = new OrderingButton(this.editor, 'extension.orderUp', 'Order Up');
+        this._buttonDown = new OrderingButtonDown(this.editor, 'extension.orderDown', 'Order Down');
 
         let subscriptions: Disposable[] = [];
         window.onDidChangeTextEditorSelection(this._onEvent, this, subscriptions);
         window.onDidChangeActiveTextEditor(this._onEvent, this, subscriptions);
 
-        this._statusButton.initialize();
-
         this._disposable = Disposable.from(...subscriptions);
+    }
+
+    public orderUp() {
+        this._buttonUp.order();
+    }
+
+    public orderDown() {
+        this._buttonDown.order();
+    }
+
+    showButtons() {
+        this._buttonUp.checkForShowing();
+        this._buttonDown.checkForShowing();
     }
 
     dispose() {
@@ -129,6 +142,6 @@ class StatusButtonController {
     }
 
     private _onEvent() {
-        this._statusButton.initialize();
+        this.showButtons();
     }
 }
