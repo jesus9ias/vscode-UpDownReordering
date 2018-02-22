@@ -2,10 +2,10 @@ import {
     window,
     commands,
     Disposable,
-    ExtensionContext,
-    StatusBarAlignment,
+    TextDocument,
     StatusBarItem,
-    TextDocument
+    ExtensionContext,
+    StatusBarAlignment
 } from 'vscode';
 
 export function activate(context: ExtensionContext) {
@@ -26,41 +26,48 @@ export function activate(context: ExtensionContext) {
 }
 
 class OrderingButton {
-    private editor;
+    private _editor;
     private _statusBarItem: StatusBarItem;
 
-    constructor(editor, command, text) {
+    constructor(command, text) {
 
         if (!this._statusBarItem) {
-            this.editor = editor;
             this._statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left);
             this._statusBarItem.command = command;
             this._statusBarItem.text = text;
         }
 
-        if (!this.editor) {
+        this._switchStatusBarItem(this._getEditor());
+    }
+
+    private _getEditor() {
+        return this._editor = window.activeTextEditor;
+    }
+
+    private _switchStatusBarItem(value) {
+        if (value) {
             this._statusBarItem.show();
         } else {
-            this._statusBarItem.show();
+            this._statusBarItem.hide();
         }
     }
 
-    public getParts() {
-        let text = this.editor.document.getText(this.editor.selection);
+    private _getParts() {
+        let text = this._editor.document.getText(this._editor.selection);
         return text.split('\n');
     }
 
-    public updateText(newText) {
-        this.editor.edit(builder => {
-            for (const selection of this.editor.selections) {
-                window.showInformationMessage('Lines ordered');
+    private _updateText(newText) {
+        this._editor.edit(builder => {
+            for (const selection of this._editor.selections) {
                 builder.replace(selection, newText);
             }
         });
     }
 
-    public order() {
-        let parts = this.getParts();        
+    public orderUp() {
+        this._getEditor();
+        let parts = this._getParts();        
 
         for (let i = 0; i < parts.length; i++) {
             for (let j = 0; j < parts.length; j++) {
@@ -72,25 +79,12 @@ class OrderingButton {
             }
         }
 
-        this.updateText(parts.join('\n'))
+        this._updateText(parts.join('\n'));
     }
 
-    public checkForShowing() {
-        if (this.editor.document.getText(this.editor.selection).length > 0) {
-            this._statusBarItem.show();
-        } else {
-            this._statusBarItem.hide();
-        }
-    }
-
-    dispose() {
-        this._statusBarItem.dispose();
-    }
-}
-
-class OrderingButtonDown extends OrderingButton {
-    public order() {
-        let parts = this.getParts();        
+    public orderDown() {
+        this._getEditor();
+        let parts = this._getParts();        
 
         for (let i = 0; i < parts.length; i++) {
             for (let j = 0; j < parts.length; j++) {
@@ -102,20 +96,27 @@ class OrderingButtonDown extends OrderingButton {
             }
         }
 
-        this.updateText(parts.join('\n'))
+        this._updateText(parts.join('\n'));
+    }
+
+    public checkForShowing() {
+        const editor = this._getEditor();
+        this._switchStatusBarItem(editor.document.getText(editor.selection).length > 0);
+    }
+
+    dispose() {
+        this._statusBarItem.dispose();
     }
 }
 
 class OrderingButtonController {
-
-    private editor = window.activeTextEditor;
     private _buttonUp: OrderingButton;
     private _buttonDown: OrderingButton;
     private _disposable: Disposable;
 
     constructor() {
-        this._buttonUp = new OrderingButton(this.editor, 'extension.orderUp', 'Order Up');
-        this._buttonDown = new OrderingButtonDown(this.editor, 'extension.orderDown', 'Order Down');
+        this._buttonUp = new OrderingButton('extension.orderUp', 'Order Up');
+        this._buttonDown = new OrderingButton('extension.orderDown', 'Order Down');
 
         let subscriptions: Disposable[] = [];
         window.onDidChangeTextEditorSelection(this._onEvent, this, subscriptions);
@@ -125,14 +126,14 @@ class OrderingButtonController {
     }
 
     public orderUp() {
-        this._buttonUp.order();
+        this._buttonUp.orderUp();
     }
 
     public orderDown() {
-        this._buttonDown.order();
+        this._buttonDown.orderDown();
     }
 
-    showButtons() {
+    private showButtons() {
         this._buttonUp.checkForShowing();
         this._buttonDown.checkForShowing();
     }
