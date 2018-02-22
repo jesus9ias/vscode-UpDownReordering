@@ -30,13 +30,11 @@ class OrderingButton {
     private _statusBarItem: StatusBarItem;
 
     constructor(command, text) {
-
         if (!this._statusBarItem) {
             this._statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left);
-            this._statusBarItem.command = command;
             this._statusBarItem.text = text;
+            this._statusBarItem.command = command;
         }
-
         this._switchStatusBarItem(this._getEditor());
     }
 
@@ -110,19 +108,28 @@ class OrderingButton {
 }
 
 class OrderingButtonController {
+    private _disposable: Disposable;
     private _buttonUp: OrderingButton;
     private _buttonDown: OrderingButton;
-    private _disposable: Disposable;
 
     constructor() {
         this._buttonUp = new OrderingButton('extension.orderUp', 'Order Up');
         this._buttonDown = new OrderingButton('extension.orderDown', 'Order Down');
 
         let subscriptions: Disposable[] = [];
-        window.onDidChangeTextEditorSelection(this._onEvent, this, subscriptions);
         window.onDidChangeActiveTextEditor(this._onEvent, this, subscriptions);
+        window.onDidChangeTextEditorSelection(this._onEvent, this, subscriptions);
 
         this._disposable = Disposable.from(...subscriptions);
+    }
+
+    private showButtons() {
+        this._buttonUp.checkForShowing();
+        this._buttonDown.checkForShowing();
+    }
+
+    private _onEvent() {
+        this.showButtons();
     }
 
     public orderUp() {
@@ -133,16 +140,7 @@ class OrderingButtonController {
         this._buttonDown.orderDown();
     }
 
-    private showButtons() {
-        this._buttonUp.checkForShowing();
-        this._buttonDown.checkForShowing();
-    }
-
     dispose() {
         this._disposable.dispose();
-    }
-
-    private _onEvent() {
-        this.showButtons();
     }
 }
