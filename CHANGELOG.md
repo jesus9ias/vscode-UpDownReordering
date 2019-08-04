@@ -1,7 +1,11 @@
 # Change Log
+
 All notable changes to the "updownreordering" extension will be documented in this file.
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+## 1.0.0
 
-## [Unreleased]
-- Initial release
+Solved extra line issue.
+
+## 0.0.1
+
+Ordering works.
