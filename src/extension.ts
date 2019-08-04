@@ -2,7 +2,6 @@ import {
     window,
     commands,
     Disposable,
-    TextDocument,
     StatusBarItem,
     ExtensionContext,
     StatusBarAlignment
@@ -65,7 +64,7 @@ class OrderingButton {
 
     public orderUp() {
         this._getEditor();
-        let parts = this._getParts();        
+        let parts = this._getParts().map(p => p.trim());        
 
         for (let i = 0; i < parts.length; i++) {
             for (let j = 0; j < parts.length; j++) {
@@ -82,7 +81,7 @@ class OrderingButton {
 
     public orderDown() {
         this._getEditor();
-        let parts = this._getParts();        
+        let parts = this._getParts().map(p => p.trim());        
 
         for (let i = 0; i < parts.length; i++) {
             for (let j = 0; j < parts.length; j++) {
