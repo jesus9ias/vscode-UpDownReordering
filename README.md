@@ -17,6 +17,10 @@ You can use Order Down or Order Up commands from Status bar as shown below:
 
 This release make a review of the code and solve one issue (extra line added at end of selection).
 
+### 1.0.1
+
+Fixed the issue that blocked the sorting buttons when changing editor window.
+
 ### 1.0.0
 
 Solved extra line issue.

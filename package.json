@@ -2,7 +2,7 @@
     "name": "updownreordering",
     "displayName": "Sort lines to up or down",
     "description": "Sort declaration or import lines to up or down",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "publisher": "jesusescamilla",
     "engines": {
         "vscode": "^1.20.0"

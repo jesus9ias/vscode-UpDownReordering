@@ -16,12 +16,16 @@ class OrderingButton {
             this._statusBarItem.text = text;
             this._statusBarItem.command = command;
         }
-        this._editor = window.activeTextEditor;
+        this._setEditor();
         this._switchStatusBarItem(this._getEditorSelection().length > 0);
     }
 
+    private _setEditor() {
+        this._editor = window.activeTextEditor;
+    }
+
     private _getEditorSelection() {
-        return this._editor.document.getText(this._editor.selection);
+        return this._editor.document.getText(this._editor.selection) || '';
     }
 
     private _switchStatusBarItem(value: boolean) {
@@ -46,6 +50,7 @@ class OrderingButton {
     }
 
     public orderUp() {
+        this._setEditor();
         let parts = this._getParts().map((p: string) => p.trim());        
 
         for (let i = 0; i < parts.length; i++) {
@@ -62,6 +67,7 @@ class OrderingButton {
     }
 
     public orderDown() {
+        this._setEditor();
         let parts = this._getParts().map((p: string) => p.trim());        
 
         for (let i = 0; i < parts.length; i++) {
@@ -78,6 +84,7 @@ class OrderingButton {
     }
 
     public checkForShowing() {
+        this._setEditor();
         this._switchStatusBarItem(this._getEditorSelection().length > 0);
     }
 
